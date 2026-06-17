@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:11
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: DB_ROOT_PASSWORD
+            - name: MARIADB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: DB_NAME
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: DB_USER
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+            - name: seed
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: seed
+          configMap:
+            name: dbseed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+    - port: 3306
+      targetPort: 3306

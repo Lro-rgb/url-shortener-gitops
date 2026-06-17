@@ -1,0 +1,15 @@
+# db-seed: wird beim ersten start von mariadb ausgeführt
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbseed
+data:
+  dbseed.sql: |
+    CREATE DATABASE IF NOT EXISTS keeper;
+    USE keeper;
+    CREATE TABLE IF NOT EXISTS urls (
+        id          INT AUTO_INCREMENT PRIMARY KEY,
+        code        VARCHAR(10)  NOT NULL UNIQUE,
+        long_url    TEXT         NOT NULL,
+        created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP
+    );

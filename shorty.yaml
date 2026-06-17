@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shorty
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shorty
+  template:
+    metadata:
+      labels:
+        app: shorty
+    spec:
+      containers:
+        - name: shorty
+          image: shorty:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: KEEPER_URL
+              value: "http://keeper:3001"
+            - name: KEEPER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: API_KEY
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shorty
+spec:
+  type: NodePort
+  selector:
+    app: shorty
+  ports:
+    - port: 3000
+      targetPort: 3000
