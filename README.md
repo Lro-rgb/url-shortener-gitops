@@ -10,7 +10,8 @@ Hier liegt der gewünschte Cluster-Zustand als YAML — Git ist die einzige Wahr
 | `configmap.yaml` | DB-Init-SQL (Tabelle `urls`) für MariaDB |
 | `db.yaml` | MariaDB Deployment + Service |
 | `keeper.yaml` | keeper Deployment + Service |
-| `shorty.yaml` | shorty Deployment + Service (NodePort) |
+| `shorty.yaml` | shorty Deployment + Service (intern, ClusterIP) |
+| `ingress.yaml` | Ingress, einziger Eingang von aussen auf shorty |
 
 Die Secrets (DB-Passwörter, API-Key) liegen **nicht** im Git, sondern werden als
 Kubernetes-Secret aus der `.env` des App-Repos erzeugt.
@@ -18,8 +19,9 @@ Kubernetes-Secret aus der `.env` des App-Repos erzeugt.
 ## Deploy in Minikube
 
 ```bash
-# cluster starten
+# cluster starten und ingress-addon aktivieren
 minikube start --memory=4096 --cpus=2
+minikube addons enable ingress
 
 # images im app-repo bauen (in den docker von minikube)
 minikube image build -t keeper:local ../url-shortener/keeper
@@ -31,19 +33,28 @@ kubectl create secret generic url-shortener-secret --from-env-file=../url-shorte
 # manifeste anwenden
 kubectl apply -f .
 kubectl get pods -w
-
-# shorty erreichbar machen (fenster offen lassen)
-kubectl port-forward service/shorty 3000:3000
 ```
 
-Test in einem zweiten Terminal:
+### Zugriff über den Ingress
+
+Unter Windows/Mac (Docker-Treiber) braucht der Ingress einen Tunnel. Das Fenster
+offen lassen:
 
 ```bash
-curl.exe -X POST http://127.0.0.1:3000/shorten -H "content-type: application/json" -d '{\"longUrl\":\"https://duckduckgo.com/\"}'
+minikube tunnel
 ```
+
+Test in einem zweiten Terminal (Host-Header statt hosts-Datei):
+
+```bash
+curl.exe -X POST http://127.0.0.1/shorten -H "Host: shorty.local" -H "content-type: application/json" -d '{\"longUrl\":\"https://duckduckgo.com/\"}'
+```
+
+Alternativ ohne Ingress (Fallback): `kubectl port-forward service/shorty 3000:3000`
+und gegen `http://127.0.0.1:3000` testen.
 
 ## Mögliche nächste Schritte
 
 - Konkrete, versionierte Image-Tags aus der Container-Registry statt `:local`
 - Eigener Namespace pro Umgebung (dev/staging/prod)
-- Mehr Replicas + Ingress statt NodePort für den produktiven Betrieb
+- Mehr Replicas und Argo CD für automatischen Sync
