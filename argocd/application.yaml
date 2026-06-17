@@ -1,0 +1,22 @@
+# argocd application: verbindet das gitops-repo mit dem cluster.
+# einmal mit "kubectl apply -f argocd/application.yaml" anwenden (bootstrap).
+# liegt im unterordner argocd/, damit der sync von path "." (nicht rekursiv)
+# diese datei nicht selbst mit anwendet.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: url-shortener
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://gitlab.ict-learnfactory.ch/ict-learnfactory/210/durchfuehrungen/210-ae-ims-24/luis/url-shortener-gitops.git
+    targetRevision: main
+    path: .
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
