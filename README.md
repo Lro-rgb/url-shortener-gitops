@@ -1,6 +1,6 @@
 # url-shortener-gitops
 
-GitOps-Repo für die Kubernetes-Manifeste des [url-shortener](https://gitlab.ict-learnfactory.ch/ict-learnfactory/210/durchfuehrungen/210-ae-ims-24/luis/url-shortener).
+GitOps-Repo für die Kubernetes-Manifeste des [url-shortener](https://github.com/Lro-rgb/url-shortener).
 Hier liegt der gewünschte Cluster-Zustand als YAML — Git ist die einzige Wahrheit, Änderungen laufen über Commits statt manueller `kubectl`-Befehle.
 
 ## Inhalt

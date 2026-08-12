@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://gitlab.ict-learnfactory.ch/ict-learnfactory/210/durchfuehrungen/210-ae-ims-24/luis/url-shortener-gitops.git
+    repoURL: https://github.com/Lro-rgb/url-shortener-gitops.git
     targetRevision: main
     path: .
   destination:
